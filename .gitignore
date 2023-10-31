@@ -1,0 +1,6 @@
+__pycache__/
+logs/
+.tmp.driveupload/
+*.egg-info/
+build/
+dist/
