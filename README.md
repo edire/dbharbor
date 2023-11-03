@@ -4,6 +4,7 @@ A Python library by Dire Analytics to standardize database connections across pl
 
 ## Installation
 
+pip install dbharbor
 pip install git+https://github.com/edire/dbharbor.git
 
 ## SQL
@@ -66,6 +67,7 @@ MIT License
 
 ## Updates
 
+11/03/2023 - fixed index name bigquery to_sql issue.<br>
 11/03/2023 - added clean_dtypes function and updated create_table dtypes.<br>
 10/20/2023 - Updated clean tool for empty column names, replaced empty strings with NaN.<br>
 10/04/2023 - Updated Bigquery data type mapping.<br>

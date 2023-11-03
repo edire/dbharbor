@@ -1,5 +1,5 @@
 # __init__.py
-from .tools import clean, clean_data, clean_column_names, clean_string
+from .tools import clean, clean_data, clean_column_names, clean_string, clean_dtypes
 
-__version__ = "2.1.3"
+__version__ = "0.1.1"
 __author__ = "Eric Di Re"

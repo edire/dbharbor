@@ -13,6 +13,7 @@ def clean(df, rowloadtime=False, drop_cols=True):
         df.dropna(how='all', axis=1, inplace=True)
     df = clean_column_names(df)
     df = clean_data(df)
+    df = clean_dtypes(df)
     if rowloadtime == True:
         df['RowLoadDateTime'] = dt.now()
     return df
@@ -55,12 +56,14 @@ def clean_string(str_input):
 def clean_dtypes(df):
     df_copy = df.copy()
     filepath = os.path.join(os.path.expanduser('~'), 'Downloads', f'{dt.timestamp(dt.now())}.csv')
-    if df_copy.index.name == None:
+    index_prename = df_copy.index.name
+    if index_prename == None:
         df_copy.index.name = 'index'
     index_name = df_copy.index.names
     df_copy.to_csv(filepath, index=True)
     df_copy = pd.read_csv(filepath, index_col=index_name)
     os.remove(filepath)
+    df_copy.index.name = index_prename
     df_copy = df_copy.convert_dtypes()
     return df_copy
 
