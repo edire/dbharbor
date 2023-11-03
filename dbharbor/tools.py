@@ -1,5 +1,7 @@
 
+import os
 import numpy as np
+import pandas as pd
 from datetime import datetime as dt
 
 
@@ -48,6 +50,19 @@ def clean_string(str_input):
             str_new = str_new[:-1]
 
     return str_new
+
+
+def clean_dtypes(df):
+    df_copy = df.copy()
+    filepath = os.path.join(os.path.expanduser('~'), 'Downloads', f'{dt.timestamp(dt.now())}.csv')
+    if df_copy.index.name == None:
+        df_copy.index.name = 'index'
+    index_name = df_copy.index.names
+    df_copy.to_csv(filepath, index=True)
+    df_copy = pd.read_csv(filepath, index_col=index_name)
+    os.remove(filepath)
+    df_copy = df_copy.convert_dtypes()
+    return df_copy
 
 
 #%% Internal Functions

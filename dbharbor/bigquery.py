@@ -30,10 +30,12 @@ class SQL:
     def __update_dtype(self, df, column, dtype):
         dict_dtype = {
             'object':'STRING',
+            'string':'STRING',
             'int32':'INT64',
             'int64':'INT64',
             'float64':'FLOAT64',
             'bool':'BOOL',
+            'boolean':'BOOL',
             'datetime64':'DATETIME',
             'datetime64[ns]':'DATETIME',
             }

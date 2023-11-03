@@ -66,6 +66,7 @@ MIT License
 
 ## Updates
 
+11/03/2023 - added clean_dtypes function and updated create_table dtypes.<br>
 10/20/2023 - Updated clean tool for empty column names, replaced empty strings with NaN.<br>
 10/04/2023 - Updated Bigquery data type mapping.<br>
 09/19/2023 - Added port option for MySQL.<br>

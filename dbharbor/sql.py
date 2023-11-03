@@ -51,9 +51,11 @@ class SQL:
     def __update_dtype(self, df, column, dtype):
         dict_dtype = {
             'object':'varchar(max_len_a)',
+            'string':'varchar(max_len_a)',
             'int64':'max_len_aint',
             'float64':'decimal(max_len_a, max_len_b)',
             'bool':'bit',
+            'boolean':'bit',
             'datetime64':'datetime',
             'datetime64[ns]':'datetime',
             }
@@ -67,7 +69,7 @@ class SQL:
             return ln
         max_len_a = ''
         max_len_b = ''
-        if dtype == 'object':
+        if dtype == 'object' or dtype == 'string':
             max_len_a = max(df[column].apply(lambda x: len(str(x)) if pd.notnull(x) else 0)) + 5
         elif dtype == 'float64':
             max_len_a = max(df[column].apply(lambda x: float_size(x, front=True) if pd.notnull(x) else 0))
