@@ -56,7 +56,7 @@ class SQL:
             'datetime64':'datetime',
             'datetime64[ns]':'datetime',
             }
-        dtype = str(dtype)
+        dtype = str(dtype).lower()
         def float_size(x, front=True):
             spl = 0 if front==True else 1
             if '.' in str(x):
@@ -73,11 +73,12 @@ class SQL:
             max_len_b = max(df[column].apply(lambda x: float_size(x, front=False) if pd.notnull(x) else 0))
             max_len_a = max_len_a + max_len_b + 2
         elif dtype == 'int64':
-            if df[column].abs().max() <= 99:
+            dtype_max = max(df[column].apply(lambda x: abs(x) if pd.notnull(x) else 0))
+            if dtype_max <= 99:
                 max_len_a = 'tiny'
-            elif df[column].abs().max() <= 9999:
+            elif dtype_max <= 9999:
                 max_len_a = 'small'
-            elif df[column].abs().max() > 999999999:
+            elif dtype_max > 999999999:
                 max_len_a = 'big'
         sql_type = dict_dtype[str(dtype)]
         sql_type = sql_type.replace('max_len_a', str(max_len_a))

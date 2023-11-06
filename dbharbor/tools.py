@@ -1,5 +1,6 @@
 
 import os
+import tempfile
 import numpy as np
 import pandas as pd
 from datetime import datetime as dt
@@ -55,14 +56,16 @@ def clean_string(str_input):
 
 def clean_dtypes(df):
     df_copy = df.copy()
-    filepath = os.path.join(os.path.expanduser('~'), 'Downloads', f'{dt.timestamp(dt.now())}.csv')
     index_prename = df_copy.index.name
     if index_prename == None:
         df_copy.index.name = 'index'
     index_name = df_copy.index.names
-    df_copy.to_csv(filepath, index=True)
-    df_copy = pd.read_csv(filepath, index_col=index_name)
-    os.remove(filepath)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        filepath = os.path.join(temp_dir, 'temp.csv')
+        df_copy.to_csv(filepath, index=True)
+        df_copy = pd.read_csv(filepath, index_col=index_name)
+
     df_copy.index.name = index_prename
     df_copy = df_copy.convert_dtypes()
     return df_copy

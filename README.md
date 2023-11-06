@@ -67,6 +67,7 @@ MIT License
 
 ## Updates
 
+11/06/2023 - Fixed dtype missing lower function in sql and mysql and now use python tempfile module.<br>
 11/03/2023 - fixed index name bigquery to_sql issue.<br>
 11/03/2023 - added clean_dtypes function and updated create_table dtypes.<br>
 10/20/2023 - Updated clean tool for empty column names, replaced empty strings with NaN.<br>
