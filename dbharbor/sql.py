@@ -58,6 +58,7 @@ class SQL:
             'boolean':'bit',
             'datetime64':'datetime',
             'datetime64[ns]':'datetime',
+            'datetime64[us]':'datetime',
             }
         dtype = str(dtype).lower()
         def float_size(x, front=True):

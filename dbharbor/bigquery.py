@@ -38,6 +38,7 @@ class SQL:
             'boolean':'BOOL',
             'datetime64':'DATETIME',
             'datetime64[ns]':'DATETIME',
+            'datetime64[us]':'DATETIME',
             }
         dtype = str(dtype).lower()
         sql_type = dict_dtype[dtype]
