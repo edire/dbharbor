@@ -69,6 +69,8 @@ class SQL:
         max_len_b = ''
         if dtype == 'object' or dtype == 'string':
             max_len_a = max(df[column].apply(lambda x: len(str(x)) if pd.notnull(x) else 0)) + 5
+            if max_len_a > 16383:
+                max_len_a = 'max'
         elif dtype == 'float64':
             max_len_a = max(df[column].apply(lambda x: float_size(x, front=True) if pd.notnull(x) else 0))
             max_len_b = max(df[column].apply(lambda x: float_size(x, front=False) if pd.notnull(x) else 0))
