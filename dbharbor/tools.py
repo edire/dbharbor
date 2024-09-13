@@ -77,8 +77,8 @@ def __scrub_data(x):
     if isinstance(x, str):
         x = x.strip()
         if x == '':
-            x = np.NaN
+            x = np.nan
     elif isinstance(x, int) or isinstance(x, float):
         if x == 0:
-            x = np.NaN
+            x = np.nan
     return x

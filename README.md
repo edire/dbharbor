@@ -67,6 +67,7 @@ MIT License
 
 ## Updates
 
+09/13/2024 - Updated NaN to nan for Numpy 2.0.<br>
 09/09/2024 - Update SQL Varchar datatype to use max when greater than 8000 characters.<br>
 08/12/2024 - Added datetime_us datatype and Bigquery storage library to setup for faster API.<br>
 11/06/2023 - Fixed dtype missing lower function in sql and mysql and now use python tempfile module.<br>
