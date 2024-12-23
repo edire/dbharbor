@@ -26,7 +26,12 @@ class SQL:
             pwd_str = ''
             trusted_conn_str = 'trusted_connection=yes'
             con_str_write = urllib.parse.quote_plus(driver_str + server_str + db_str + trusted_conn_str + uid_str + pwd_str)
-            self.con = create_engine('mssql+pyodbc:///?odbc_connect={}'.format(con_str_write), fast_executemany=True, isolation_level="AUTOCOMMIT")
+            self.con = create_engine(
+                'mssql+pyodbc:///?odbc_connect={}'.format(con_str_write),
+                fast_executemany=True,
+                isolation_level="AUTOCOMMIT",
+                pool_pre_ping=True
+            )
             self.run('SELECT 1')
 
         except:
@@ -34,7 +39,12 @@ class SQL:
             pwd_str = f'PWD={pwd};'
             trusted_conn_str = ''
             con_str_write = urllib.parse.quote_plus(driver_str + server_str + db_str + trusted_conn_str + uid_str + pwd_str)
-            self.con = create_engine('mssql+pyodbc:///?odbc_connect={}'.format(con_str_write), fast_executemany=True, isolation_level="AUTOCOMMIT")
+            self.con = create_engine(
+                'mssql+pyodbc:///?odbc_connect={}'.format(con_str_write),
+                fast_executemany=True,
+                isolation_level="AUTOCOMMIT",
+                pool_pre_ping=True
+            )
             self.run('SELECT 1')
 
     def read(self, sql):

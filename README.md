@@ -67,6 +67,7 @@ MIT License
 
 ## Updates
 
+12/22/2024 - Added pool_pre_ping for long running connections.<br>
 09/13/2024 - Updated NaN to nan for Numpy 2.0.<br>
 09/09/2024 - Update SQL Varchar datatype to use max when greater than 8000 characters.<br>
 08/12/2024 - Added datetime_us datatype and Bigquery storage library to setup for faster API.<br>

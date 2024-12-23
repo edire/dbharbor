@@ -18,11 +18,19 @@ class SQL:
                  ):
 
         try:
-            self.con = create_engine(f'mysql+pymysql://{uid}:{pwd}@{server}:{port}/{db}', isolation_level="AUTOCOMMIT")
+            self.con = create_engine(
+                f'mysql+pymysql://{uid}:{pwd}@{server}:{port}/{db}',
+                isolation_level="AUTOCOMMIT",
+                pool_pre_ping=True
+            )
             self.run('SELECT 1')
         except:
             pwd = quote_plus(pwd)
-            self.con = create_engine(f'mysql+pymysql://{uid}:{pwd}@{server}:{port}/{db}', isolation_level="AUTOCOMMIT")
+            self.con = create_engine(
+                f'mysql+pymysql://{uid}:{pwd}@{server}:{port}/{db}',
+                isolation_level="AUTOCOMMIT",
+                pool_pre_ping=True
+            )
             self.run('SELECT 1')
 
     def read(self, sql):
