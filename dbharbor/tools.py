@@ -1,6 +1,5 @@
 
-import os
-import tempfile
+import io
 import numpy as np
 import pandas as pd
 from datetime import datetime as dt
@@ -21,15 +20,15 @@ def clean(df, rowloadtime=False, drop_cols=True):
 
 
 def clean_data(df):
-    df = df.map(__scrub_data)
+    for col in df.select_dtypes(include='number').columns:
+        df[col] = df[col].replace(0, np.nan)
+    for col in df.select_dtypes(include='object').columns:
+        df[col] = df[col].apply(lambda x: x.strip() if isinstance(x, str) else x).replace('', np.nan)
     return df
 
 
 def clean_column_names(df):
-    lst_output = []
-    for el in df.columns:
-        lst_output.append(clean_string(el))
-    df.columns = lst_output
+    df.columns = [clean_string(el) for el in df.columns]
     return df
 
 
@@ -61,24 +60,13 @@ def clean_dtypes(df):
         df_copy.index.name = 'index'
     index_name = df_copy.index.names
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        filepath = os.path.join(temp_dir, 'temp.csv')
-        df_copy.to_csv(filepath, index=True)
-        df_copy = pd.read_csv(filepath, index_col=index_name)
+    buf = io.StringIO()
+    df_copy.to_csv(buf, index=True)
+    buf.seek(0)
+    df_copy = pd.read_csv(buf, index_col=index_name)
 
     df_copy.index.name = index_prename
     df_copy = df_copy.convert_dtypes()
     return df_copy
 
 
-#%% Internal Functions
-
-def __scrub_data(x):
-    if isinstance(x, str):
-        x = x.strip()
-        if x == '':
-            x = np.nan
-    elif isinstance(x, int) or isinstance(x, float):
-        if x == 0:
-            x = np.nan
-    return x

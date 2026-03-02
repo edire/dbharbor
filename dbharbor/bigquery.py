@@ -19,7 +19,7 @@ class SQL:
         self.client = bigquery.Client()
 
     def read(self, sql):
-        return self.client.query(sql).to_dataframe()
+        return self.client.query(sql).to_dataframe(create_bqstorage_client=True)
     
     def run(self, sql):
         for query in sql.strip().split(';'):
@@ -27,7 +27,8 @@ class SQL:
                 query_job = self.client.query(query)
                 query_job.result()
 
-    def __update_dtype(self, df, column, dtype):
+
+    def __update_dtype(self, column, dtype):
         dict_dtype = {
             'object':'STRING',
             'string':'STRING',
@@ -45,13 +46,14 @@ class SQL:
         sql_column = f'`{column}` {sql_type}'
         return sql_column
 
+
     def create_table(self, df, name, replace=False, extras=False, **kwargs):
         column_list = []
         for column, dtype in df.dtypes.items():
             if column == 'RowLoadDateTime' and extras == True:
                 pass
             else:
-                column_list.append(self.__update_dtype(df, column, dtype))
+                column_list.append(self.__update_dtype(column, dtype))
         columns = ',\n'.join(column_list)
         sql_create = ''
         if replace == True:
@@ -66,31 +68,6 @@ class SQL:
             sql_create += f"{columns});"
         self.run(sql_create)
 
-    def where_not_exists(self, df, name, columns):
-        columns = list(columns)
-        columns_sql = []
-        columns_df = df.columns
-        for i in range(len(columns)):
-            columns_sql.append('`' + columns[i] + '`')
-        sql_primkeys = f"select {','.join(columns_sql)} from {name};"
-        df_primkeys = self.read(sql_primkeys)
-        for col in df_primkeys.columns:
-            if df[col].dtype != df_primkeys[col].dtype:
-                df_primkeys[col] = df_primkeys[col].astype(df[col].dtype)
-        df = pd.merge(left=df, right=df_primkeys, how="outer", on=columns, indicator=True)
-        df = df[df['_merge'] == "left_only"]
-        df = df[columns_df].reset_index(drop=True)
-        return df
-
-    def add_missing_columns(self, df, name):
-        sql_current = f"SELECT * FROM {name} LIMIT 1;"
-        df_current = self.read(sql_current)
-        columns_current = df_current.columns
-        for column, dtype in df.dtypes.items():
-            if column not in columns_current:
-                sql_new = self.__update_dtype(df, column, dtype)
-                sql_new = f"ALTER TABLE {name} ADD COLUMN {sql_new};"
-                self.run(sql_new)
 
     def to_sql(self, df, name, if_exists='fail', index=True, **kwargs):
         df_copy = df.copy()
@@ -110,6 +87,9 @@ class SQL:
             raise(Exception('if_exists value is invalid, please choose between (fail, replace, append)'))
 
         df_copy = df_copy.replace({np.nan: None})
+
+        for col in df_copy.select_dtypes(include='object').columns:
+            df_copy[col] = df_copy[col].apply(lambda x: str(x) if x is not None else None)
 
         job = self.client.load_table_from_dataframe(df_copy, name)
         job.result()

@@ -33,6 +33,7 @@ class SQL:
             )
             self.run('SELECT 1')
 
+
     def read(self, sql):
         sql = sql.replace('\ufeff', '')
         sql_list = sql.split(';')
@@ -46,12 +47,14 @@ class SQL:
             df = pd.read_sql_query(sql=sql_list[-1], con=connection)
         return df
 
+
     def run(self, sql):
         con_pymysql = self.con.raw_connection()
         with con_pymysql.cursor() as cursor:
             for query in sql.strip().split(';'):
                 if len(query) > 0:
                     cursor.execute(query + ';')
+
 
     def __update_dtype(self, df, column, dtype):
         dict_dtype = {
@@ -66,25 +69,20 @@ class SQL:
             'datetime64[us]':'datetime',
             }
         dtype = str(dtype).lower()
-        def float_size(x, front=True):
-            spl = 0 if front==True else 1
-            if '.' in str(x):
-                ln = len(str(x).split('.')[spl])
-            else:
-                ln = len(str(x)) if front==True else 0
-            return ln
         max_len_a = ''
         max_len_b = ''
         if dtype == 'object' or dtype == 'string':
-            max_len_a = max(df[column].apply(lambda x: len(str(x)) if pd.notnull(x) else 0)) + 5
+            max_len_a = df[column].dropna().astype(str).str.len().max() + 5
             if max_len_a > 16383:
                 max_len_a = 'max'
         elif dtype == 'float64':
-            max_len_a = max(df[column].apply(lambda x: float_size(x, front=True) if pd.notnull(x) else 0))
-            max_len_b = max(df[column].apply(lambda x: float_size(x, front=False) if pd.notnull(x) else 0))
-            max_len_a = max_len_a + max_len_b + 2
+            parts = df[column].dropna().astype(str).str.split('.')
+            front_len = parts.str[0].str.len().max()
+            back_len = parts.str[1].str.len().fillna(0).astype(int).max()
+            max_len_a = int(front_len) + int(back_len) + 2
+            max_len_b = int(back_len)
         elif dtype == 'int64':
-            dtype_max = max(df[column].apply(lambda x: abs(x) if pd.notnull(x) else 0))
+            dtype_max = df[column].dropna().abs().max()
             if dtype_max <= 99:
                 max_len_a = 'tiny'
             elif dtype_max <= 9999:
@@ -96,6 +94,7 @@ class SQL:
         sql_type = sql_type.replace('max_len_b', str(max_len_b))
         sql_column = f'`{column}` {sql_type}'
         return sql_column
+
 
     def create_table(self, df, name, replace=False, extras=False, **kwargs):
         column_list = []
@@ -121,31 +120,6 @@ class SQL:
             sql_create += f"{columns});"
         self.run(sql_create)
 
-    def where_not_exists(self, df, name, columns):
-        columns = list(columns)
-        columns_sql = []
-        columns_df = df.columns
-        for i in range(len(columns)):
-            columns_sql.append('`' + columns[i] + '`')
-        sql_primkeys = f"select {','.join(columns_sql)} from {name};"
-        df_primkeys = self.read(sql_primkeys)
-        for col in df_primkeys.columns:
-            if df[col].dtype != df_primkeys[col].dtype:
-                df_primkeys[col] = df_primkeys[col].astype(df[col].dtype)
-        df = pd.merge(left=df, right=df_primkeys, how="outer", on=columns, indicator=True)
-        df = df[df['_merge'] == "left_only"]
-        df = df[columns_df].reset_index(drop=True)
-        return df
-
-    def add_missing_columns(self, df, name):
-        sql_current = f"SELECT * FROM {name} LIMIT 1;"
-        df_current = self.read(sql_current)
-        columns_current = df_current.columns
-        for column, dtype in df.dtypes.items():
-            if column not in columns_current:
-                sql_new = self.__update_dtype(df, column, dtype)
-                sql_new = f"ALTER TABLE {name} ADD {sql_new};"
-                self.run(sql_new)
 
     def to_sql(self, df, name, if_exists='fail', index=True, **kwargs):
         df_copy = df.copy()
@@ -165,6 +139,6 @@ class SQL:
             raise(Exception('if_exists value is invalid, please choose between (fail, replace, append)'))
 
         df_copy = df_copy.replace({np.nan: None})
-        df_copy.to_sql(name, if_exists='append', index=False, con=self.con)
+        df_copy.to_sql(name, if_exists='append', index=False, con=self.con, method='multi')
         
         return True
