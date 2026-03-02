@@ -86,9 +86,10 @@ class SQL:
         else:
             raise(Exception('if_exists value is invalid, please choose between (fail, replace, append)'))
 
+        obj_cols = df_copy.select_dtypes(include='object').columns.tolist()
         df_copy = df_copy.replace({np.nan: None})
 
-        for col in df_copy.select_dtypes(include='object').columns:
+        for col in obj_cols:
             df_copy[col] = df_copy[col].apply(lambda x: str(x) if x is not None else None)
 
         job = self.client.load_table_from_dataframe(df_copy, name)
