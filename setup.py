@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='dbharbor',
     packages=['dbharbor'],
-    version='1.0.0',
+    version='1.0.1',
     license='MIT',
     author='Eric Di Re',
     author_email='eric.dire@direanalytics.com',
