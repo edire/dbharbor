@@ -314,6 +314,7 @@ MIT License
 
 ## Updates
 
+03/02/2026 - v1.0.2: Added additional data type cleanup to help parse dates and numeric when varying formats appear.<br>
 03/02/2026 - v1.0.0: Added Snowflake module (RSA key auth, `write_pandas` bulk load). Vectorized `__update_dtype` and `clean_data`. BigQuery reads now use Storage API. MySQL loads use multi-row INSERT batching. `clean_dtypes` replaced temp file with in-memory StringIO.<br>
 09/30/2025 - Added pandas-gbq to install list for BigQuery.<br>
 12/22/2024 - Added pool_pre_ping for long running connections.<br>

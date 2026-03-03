@@ -1,9 +1,9 @@
 
 
 import os
-from google.cloud import bigquery
-import pandas as pd
 import numpy as np
+import pandas as pd
+from google.cloud import bigquery
 
 
 #%% BigQuery
@@ -18,9 +18,11 @@ class SQL:
 
         self.client = bigquery.Client()
 
+
     def read(self, sql):
         return self.client.query(sql).to_dataframe(create_bqstorage_client=True)
-    
+
+
     def run(self, sql):
         for query in sql.strip().split(';'):
             if len(query) > 0:
@@ -30,21 +32,22 @@ class SQL:
 
     def __update_dtype(self, column, dtype):
         dict_dtype = {
-            'object':'STRING',
-            'string':'STRING',
-            'int32':'INT64',
-            'int64':'INT64',
-            'float64':'FLOAT64',
-            'bool':'BOOL',
-            'boolean':'BOOL',
-            'datetime64':'DATETIME',
-            'datetime64[ns]':'DATETIME',
-            'datetime64[us]':'DATETIME',
-            }
-        dtype = str(dtype).lower()
-        sql_type = dict_dtype[dtype]
-        sql_column = f'`{column}` {sql_type}'
-        return sql_column
+            'object':           'STRING',
+            'string':           'STRING',
+            'int32':            'INT64',
+            'int64':            'INT64',
+            'Int64':            'INT64',    # pandas nullable integer
+            'float32':          'FLOAT64',
+            'float64':          'FLOAT64',
+            'Float64':          'FLOAT64',  # pandas nullable float
+            'bool':             'BOOL',
+            'boolean':          'BOOL',     # pandas nullable boolean
+            'datetime64':       'DATETIME',
+            'datetime64[ns]':   'DATETIME',
+            'datetime64[us]':   'DATETIME',
+        }
+        sql_type = dict_dtype.get(str(dtype), 'STRING')
+        return f'`{column}` {sql_type}'
 
 
     def create_table(self, df, name, replace=False, extras=False, **kwargs):

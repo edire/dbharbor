@@ -1,5 +1,6 @@
 
 import io
+import datetime
 import numpy as np
 import pandas as pd
 from datetime import datetime as dt
@@ -36,7 +37,7 @@ def clean_string(str_input):
     str_input = str(str_input)
     for sc in [' ', '\\n']:
         str_input = str_input.replace(sc, '_')
-        
+
     str_new = ''
     for ch in str_input:
         if ((ch.lower()>='a' and ch.lower()<='z') or (ch>='0' and ch<='9') or ch=='_'):
@@ -56,17 +57,54 @@ def clean_string(str_input):
 def clean_dtypes(df):
     df_copy = df.copy()
     index_prename = df_copy.index.name
-    if index_prename == None:
+    if index_prename is None:
         df_copy.index.name = 'index'
     index_name = df_copy.index.names
 
+    # CSV round-trip normalizes mixed-type object columns to consistent text
+    # representations so convert_dtypes() can infer the best type cleanly.
     buf = io.StringIO()
     df_copy.to_csv(buf, index=True)
     buf.seek(0)
-    df_copy = pd.read_csv(buf, index_col=index_name)
+    df_copy = pd.read_csv(buf, index_col=index_name, low_memory=False)
 
     df_copy.index.name = index_prename
     df_copy = df_copy.convert_dtypes()
+
+    # Datetime inference: convert string columns where every non-null value
+    # parses successfully (null count unchanged — no data is ever lost).
+    for col in df_copy.select_dtypes(include='string').columns:
+        if df_copy[col].isna().all():
+            continue
+        parsed = pd.to_datetime(df_copy[col], format='mixed', errors='coerce')
+        if parsed.isna().sum() == df_copy[col].isna().sum():
+            df_copy[col] = parsed
+
+    # Resolve any remaining object-dtype columns (e.g. Python date/datetime
+    # objects or mixed-numeric objects that survived the round-trip).
+    # Same null-count-unchanged rule applies throughout.
+    for col in df_copy.select_dtypes(include='object').columns:
+        if df_copy[col].isna().all():
+            df_copy[col] = df_copy[col].astype('string')
+            continue
+
+        sample = df_copy[col].dropna().iloc[0]
+
+        if isinstance(sample, (datetime.date, datetime.datetime)):
+            parsed = pd.to_datetime(df_copy[col], errors='coerce')
+            if parsed.isna().sum() == df_copy[col].isna().sum():
+                df_copy[col] = parsed
+            else:
+                df_copy[col] = df_copy[col].apply(lambda x: str(x) if pd.notna(x) else None).astype('string')
+
+        elif isinstance(sample, (int, float, np.integer, np.floating)):
+            converted = pd.to_numeric(df_copy[col], errors='coerce')
+            if converted.isna().sum() == df_copy[col].isna().sum():
+                df_copy[col] = converted
+            else:
+                df_copy[col] = df_copy[col].apply(lambda x: str(x) if pd.notna(x) else None).astype('string')
+
+        else:
+            df_copy[col] = df_copy[col].apply(lambda x: str(x) if pd.notna(x) else None).astype('string')
+
     return df_copy
-
-
